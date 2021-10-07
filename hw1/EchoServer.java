@@ -134,7 +134,7 @@ public class EchoServer {
                 System.out.println();
                 
                 byte[] response = decodeRequest(request.toByteArray());
-                // sending data to client
+                // sending data to the client
                 System.out.println("response is:" + print(response));
                 out.write(response);
                 
