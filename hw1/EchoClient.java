@@ -57,17 +57,13 @@ public class EchoClient {
 				    };
       	out.write(message); 
 	
-	// receive from server
-	ByteArrayOutputStream response = new ByteArrayOutputStream();
-	byte[] buffer = new byte[1024];
-	//int len;
-	//while ((len = in.read(buffer)) != -1) {
-	//	response.write(buffer, 0, len);
-	//}
-	response.write(buffer, 0, in.read(buffer));
-	System.out.println("Server response is:" + print(response.toByteArray()));
-      }
-      clientSocket.close();
+    	// receive from server
+        ByteArrayOutputStream response = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        response.write(buffer, 0, in.read(buffer));
+        System.out.println("Server response is:" + print(response.toByteArray()));
+    }
+    clientSocket.close();
     } catch (IOException e) {
       e.printStackTrace();
     }
