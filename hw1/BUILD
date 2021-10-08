@@ -12,4 +12,3 @@ java_binary(
     ],
     main_class = "echo.ThreadedEchoServer",
 )
-)
