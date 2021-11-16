@@ -127,17 +127,17 @@ class GameState {
     //System.out.println("snake head position: " + this.snake.getFirst().toString());
     Position nextHead = Position.copy(this.snake.getFirst()).move(this.dir);
     //System.out.println("snake next position: " + nextHead.toString());
-    if (isInSnakeBody(nextHead) || isInSnakeOpponentBody(nextHead) || 
-          isCollideWindow(nextHead)) {
+    if (isInSnakeBody(nextHead) || isInSnakeOpponentBody(nextHead)) { 
+      //    isCollideWindow(nextHead)) {
       this.gameOver = true;
-      System.out.println("game over, snake opponent win 1");
+      //System.out.println("game over, snake opponent win 1");
       snake_win = false;
       return;
     }
 
     if (isInSnakeOpponentHead(nextHead)) {
       this.gameOver = true;
-      System.out.println("game over with draw 1");
+      //System.out.println("game over with draw 1");
       return;
     }
     //writeLock.lock();
@@ -155,14 +155,14 @@ class GameState {
 
   public void moveSnakeOpponent() {
     if (this.gameOver) {
-      System.out.println("so game over 220");
+      //System.out.println("so game over 220");
       return;
     }
     Position nextHead = Position.copy(snake_opponent.getFirst()).move(opponent_dir);
-    if (isInSnakeOpponentBody(nextHead) || isInSnakeBody(nextHead) || 
-          isCollideWindow(nextHead)) {
+    if (isInSnakeOpponentBody(nextHead) || isInSnakeBody(nextHead)) {
+      //    isCollideWindow(nextHead)) {
       this.gameOver = true;
-      System.out.println("game over, snake win 2");
+      //System.out.println("game over, snake win 2");
       snake_opponent_win = false;
       return;
     }

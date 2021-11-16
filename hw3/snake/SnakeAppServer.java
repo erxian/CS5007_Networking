@@ -180,7 +180,7 @@ public class SnakeAppServer {
               serverSocket.receive(pkt);
               InetAddress addr = pkt.getAddress();
               int port = pkt.getPort();
-              System.out.println("port is: " + String.valueOf(port));
+              //System.out.println("port is: " + String.valueOf(port));
               if (portList.size() <= 2) {
                 addrList.add(addr);     
                 portList.add(port);

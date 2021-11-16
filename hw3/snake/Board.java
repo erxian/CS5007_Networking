@@ -89,11 +89,13 @@ public class Board extends JPanel {
   }
 
   private void renderWinner(Graphics g) {
-    if (SnakeFrame.get().getWinner() == null)
-      return;
     g.setColor(Color.GREEN);
     g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
-    g.drawString(SnakeFrame.get().getWinner() + " win", 70, 90);
+    if (SnakeFrame.get().getWinner() == null) {
+      g.drawString("DRAW", 70, 90);;
+    } else {
+      g.drawString(SnakeFrame.get().getWinner() + " win", 70, 90);
+    }
   }
 
   private void renderWaitingComponent(Graphics g) {

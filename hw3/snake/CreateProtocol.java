@@ -30,11 +30,10 @@ public class CreateProtocol {
         int name_len = bytes[2] & 0xFF;
         int offset = 3 + game_len;
         this.game_id = new String(
-                Arrays.copyOfRange(bytes, 3, offset), "UTF-8");
+                Arrays.copyOfRange(bytes, 3, offset));
         this.nick_name = new String(
                 Arrays.copyOfRange(
-                    bytes, offset, offset + name_len), 
-                    "UTF-8");
+                    bytes, offset, offset + name_len));
         offset = offset + name_len;
         this.ip = generateIp(Arrays.copyOfRange(bytes, offset, offset+4));
         offset = offset + 4;
