@@ -10,7 +10,7 @@ public class CreateProtocol {
     private String game_id;
     private String nick_name;
     private String ip;
-    private String port;
+    private int port;
 
     public CreateProtocol() {
     }
@@ -20,7 +20,7 @@ public class CreateProtocol {
         this.game_id = args[1];
         this.nick_name = args[2];
         this.ip = args[3];
-        this.port = args[4];
+        this.port = Integer.parseInt(args[4]);
     }
 
     public CreateProtocol decodeBytes(byte[] bytes) throws
@@ -49,12 +49,9 @@ public class CreateProtocol {
         return String.join(".", ip);
     }
 
-    private String generatePort(byte[] b) {
-        ArrayList<String> port = new ArrayList<String>();
-        for(int i=0; i<b.length; i++) {
-            port.add(String.valueOf(b[i] & 0xFF));
-        }
-        return String.join("", port); 
+    private int generatePort(byte[] b) {
+        return ((b[0] & 0xFF) << 8) |
+                ((b[1] & 0xFF) << 0);
     }
 
     public int getType() {
@@ -73,7 +70,7 @@ public class CreateProtocol {
         return this.ip;
     }
 
-    public String getPort() {
+    public int getPort() {
         return this.port;
     }
 
@@ -114,24 +111,13 @@ public class CreateProtocol {
         return bytes;
     }
 
-      // this is a helper function, print byte array
-    private String print(byte[] bytes) {
-      StringBuilder sb = new StringBuilder();
-      sb.append("[ ");
-      for (byte b : bytes) {
-          sb.append(String.format("0x%02X ", b));
-      }
-      sb.append("]"); return sb.toString();
-    }
-
     public byte[] parseArgs() throws IOException {
 
         byte[] name_len = intToByteArray(this.game_id.length());
         byte[] game_len = intToByteArray(this.nick_name.length());
 
         byte[] ipToByte = ipToBytes(this.ip);
-        byte[] portToByte = intToByteArrays(Integer.parseInt(this.port));
-        //System.out.println(print(portToByte));
+        byte[] portToByte = intToByteArrays(this.port);
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         outputStream.write(intToByteArray(this.type));
@@ -148,6 +134,6 @@ public class CreateProtocol {
 
     @Override
     public String toString() {
-        return String.format("%s, %s, %s, %s", game_id, nick_name, ip, port);
+        return String.format("game: %s, %s, %s, %d", game_id, nick_name, ip, port);
     }
 }

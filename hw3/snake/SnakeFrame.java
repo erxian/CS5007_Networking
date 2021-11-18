@@ -14,7 +14,6 @@ import static snake.app.Config.BOARD_SIZE;
 
 
 class SnakeFrame extends JFrame {
-  //private final ScheduledExecutorService scheduler;
   private final Board board;
   private static SnakeFrame INSTANCE;
   private Direction dir;
@@ -79,12 +78,10 @@ class SnakeFrame extends JFrame {
 
   private void setSnakePositon(byte[] snake_bitmap) {
     this.snake = generatePosition(snake_bitmap);
-    //snake.stream().forEach(s -> System.out.println(s.toString()));
   }
 
   private void setSnakeOppoPositon(byte[] snakeOppo_bitmap) {
     this.snake_opponent = generatePosition(snakeOppo_bitmap);
-    //snake.stream().forEach(s -> System.out.println(s.toString()));
   }
 
   private LinkedList<Position> generatePosition (byte[] bitmap) {
@@ -95,7 +92,6 @@ class SnakeFrame extends JFrame {
         if(bitString.charAt(j + BOARD_SIZE*i) == '1') {
           pos = Position.set(i, j, BOARD_SIZE);
           list.add(pos);
-          //System.out.println(String.format("[%d,%d]", i, j));
         }
       }
     }

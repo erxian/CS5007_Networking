@@ -4,6 +4,7 @@ import java.util.*;
 import java.io.IOException;
 import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
+import static snake.app.Config.CHANGE_DIR;
 
 public class MoveProtocol {
     private int type;
@@ -15,7 +16,7 @@ public class MoveProtocol {
     }
 
     public MoveProtocol(String game_id, String nick_name) throws IOException {
-        this.type = 3;
+        this.type = CHANGE_DIR;
         this.game_id = game_id;
         this.nick_name = nick_name;
         this.dir = null;
@@ -51,7 +52,6 @@ public class MoveProtocol {
                 Arrays.copyOfRange(
                     bytes, offset, offset + name_len));
         offset = offset + name_len;
-        //this.dir = String.valueOf(bytes[offset]);
         this.dir = new String(
                 Arrays.copyOfRange(bytes, offset, offset + 1));
         return this;
@@ -102,7 +102,6 @@ public class MoveProtocol {
         outputStream.write(this.game_id.getBytes());
         outputStream.write(this.nick_name.getBytes());
         outputStream.write(this.dir.getBytes());
-        //System.out.println("dir bytes is: " + String.valueOf(this.dir.getBytes().length));
         return outputStream.toByteArray();
     }
 

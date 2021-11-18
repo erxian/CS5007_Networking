@@ -16,10 +16,9 @@ import javax.swing.JPanel;
 
 
 public class Board extends JPanel {
-  private static final Image DOT = new ImageIcon("snake/images/dot.png").getImage();
-  private static final Image BODY = new ImageIcon("snake/images/oppo.png").getImage();
+  private static final Image GREEN = new ImageIcon("snake/images/green_dot.png").getImage();
+  private static final Image PINK = new ImageIcon("snake/images/pink_dot.png").getImage();
   private static final Image APPLE = new ImageIcon("snake/images/apple.png").getImage();
-  private static final Image HEAD = new ImageIcon("snake/images/head.png").getImage();
   private int STATE = -1;
 
   public Board() {
@@ -51,7 +50,6 @@ public class Board extends JPanel {
   }
 
   private void renderApple(Graphics g) {
-    //Position p = GameState.get().getApplePosition();
     Position p = SnakeFrame.get().getApplePosition();
     render(g, APPLE, p);
   }
@@ -60,26 +58,14 @@ public class Board extends JPanel {
     SnakeFrame.get()
         .getSnakePosition()
         .stream()
-        .findFirst()
-        .ifPresent(p -> render(g, HEAD, p));
-    SnakeFrame.get()
-        .getSnakePosition()
-        .stream()
-        .skip(1)
-        .forEach(p -> render(g, DOT, p));
+        .forEach(p -> render(g, GREEN, p));
   }
 
   private void renderSnakeOpponent(Graphics g) {
     SnakeFrame.get()
         .getSnakeOpponentPosition()
         .stream()
-        .findFirst()
-        .ifPresent(p -> render(g, HEAD, p));
-    SnakeFrame.get()
-        .getSnakeOpponentPosition()
-        .stream()
-        .skip(1)
-        .forEach(p -> render(g, BODY, p));
+        .forEach(p -> render(g, PINK, p));
   }
 
   private void renderGameOver(Graphics g) {
@@ -92,9 +78,9 @@ public class Board extends JPanel {
     g.setColor(Color.GREEN);
     g.setFont(new Font("TimesRoman", Font.PLAIN, 30));
     if (SnakeFrame.get().getWinner() == null) {
-      g.drawString("DRAW", 70, 90);;
+      g.drawString("It is a draw", 80, 90);;
     } else {
-      g.drawString(SnakeFrame.get().getWinner() + " win", 70, 90);
+      g.drawString("winner is " + SnakeFrame.get().getWinner(), 40, 90);
     }
   }
 

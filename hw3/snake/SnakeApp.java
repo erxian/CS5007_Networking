@@ -3,7 +3,6 @@ package snake.app;
 class SnakeApp {
 
   SnakeApp() {
-
   }
 
   public static void main(String[] args) {

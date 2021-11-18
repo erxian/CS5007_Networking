@@ -30,19 +30,9 @@ public class SnakeAppClient {
   private byte[] game_state_data = null;
   private int count = 0;
 
-  // this is a helper function, print byte array
-  public static String print(byte[] bytes) {
-    StringBuilder sb = new StringBuilder();
-    sb.append("[ ");
-    for (byte b : bytes) {
-        sb.append(String.format("0x%02X ", b));
-    }
-    sb.append("]"); return sb.toString();
-  }
-
   private void sendDirection() {
       if (SnakeFrame.get().hasUpdate() == count) {
-        //System.out.println("no direction change");
+        // no direction change
         return;
       }
       try {
@@ -61,20 +51,19 @@ public class SnakeAppClient {
 
   SnakeAppClient(String[] args) {
     System.out.println("UDP Snake client");
-    //scheduler = Executors.newSingleThreadScheduledExecutor();
-    scheduler = Executors.newScheduledThreadPool(3);
+    scheduler = Executors.newSingleThreadScheduledExecutor();
+    //scheduler = Executors.newScheduledThreadPool(3);
 
     scheduler.scheduleAtFixedRate(this::sendDirection, /* initialDelay */ 0,
             GAME_SPEED_MS, MILLISECONDS);
     try {
-        clientSocket = new DatagramSocket();
         // addr is server ip address
         InetAddress addr = InetAddress.getByName("localhost");
         CreateProtocol player = new CreateProtocol(args);
-        byte[] message = player.parseArgs();;
+        byte[] message = player.parseArgs();
+        clientSocket = new DatagramSocket(player.getPort());
         game_id = player.getGameId();
         nick_name = player.getNickName();
-         
         DatagramPacket pkt = new DatagramPacket(message,
                 message.length, addr, SERVER_PORT);
         clientSocket.send(pkt);
@@ -111,7 +100,7 @@ public class SnakeAppClient {
                     SnakeFrame.get().runRepeat(data);
                     break;
                 default:
-                    System.out.println("Unrecognize Message");
+                    System.out.println("Game Not Created Yet");
                     break;
             }
         }

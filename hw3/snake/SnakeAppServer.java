@@ -27,7 +27,7 @@ public class SnakeAppServer {
   private static final int PORT = 8080;
   private static final int BUF_SIZE = 1024;
   private List<Integer> portList;
-  private List<InetAddress> addrList;
+  private List<InetAddress> ipList;
   private final ScheduledExecutorService scheduler;
   private DatagramSocket serverSocket;
   private int opt = -1; //output type initialized with -1
@@ -52,6 +52,7 @@ public class SnakeAppServer {
 
   private byte[] sendGameState() throws IOException {
         if (GameState.get().isGameOver()) {
+            System.out.println("Game Over, please restart server before start a new game");
             return sendGameOver();
         }
         // get game state
@@ -59,14 +60,11 @@ public class SnakeAppServer {
         Position apple = GameState.get().getApplePosition();
         byte[] row = intToByteArray(apple.getRow());
         byte[] col = intToByteArray(apple.getCol());
-
+        // move snake and get its position info
         GameState.get().moveSnake();
         GameState.get().moveSnakeOpponent();
         byte[] snake_bitmap = GameState.get().getSnakeBitmap();
         byte[] snakeOppo_bitmap = GameState.get().getSnakeOpponentBitmap();
-
-        //LinkedList<Position> snake = GameState.get().getSnakePosition();
-        //snake.stream().forEach(s -> System.out.println(s.toString()));
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
         outputStream.write(intToByteArray(opt));
@@ -106,7 +104,7 @@ public class SnakeAppServer {
         }
         for(int i=0; i<portList.size(); i++) {
             DatagramPacket statePkt = new DatagramPacket(state_info,
-                    state_info.length, addrList.get(i), portList.get(i));
+                    state_info.length, ipList.get(i), portList.get(i));
             serverSocket.send(statePkt);
         }
       } catch (IOException e) {
@@ -114,17 +112,19 @@ public class SnakeAppServer {
       }
   }
 
-  private void moveUpdate() {
-      GameState.get().moveSnake();
-      GameState.get().moveSnakeOpponent();
-  }
-
-  private boolean isValid() {
+  private boolean isValidParams() {
     if (!snake_oppo_params.getGameId().equals(snake_params.getGameId()) || 
         snake_oppo_params.getNickName().equals(snake_params.getNickName())) {
       return false;
     }
     return true;
+  }
+
+  private boolean isValidAddr(InetAddress ip, int port) {
+    if (ipList.size() < 1) {
+      return true;
+    }
+    return (ipList.get(0).equals(ip) && portList.get(0) == port) ? false : true;
   }
 
   private void updateDirection(MoveProtocol player) {
@@ -145,29 +145,21 @@ public class SnakeAppServer {
         break;
     }
 
-    //System.out.println("player :" + player.getNickName() + ", create: " + snake_params.getNickName());
     if (player.getNickName().equals(snake_params.getNickName())) {
-      //System.out.println("snake direction changed");
       GameState.get().updateSnakeDirection(newDir);
     } else if (player.getNickName().equals(snake_oppo_params.getNickName())) {
-      //System.out.println("snake opponent direction changed");
       GameState.get().updateSnakeOppoDirection(newDir);
     }
   }
 
   SnakeAppServer() {
       portList = new ArrayList<>();
-      addrList = new ArrayList<>();
+      ipList = new ArrayList<>();
       snake_params = new CreateProtocol();
       snake_oppo_params = new CreateProtocol();
-      //scheduler = Executors.newSingleThreadScheduledExecutor();
-      scheduler = Executors.newScheduledThreadPool(3);
-
+      scheduler = Executors.newSingleThreadScheduledExecutor();
       scheduler.scheduleAtFixedRate(this::sendOnce, /* initialDelay */ 0,
         GAME_SPEED_MS, MILLISECONDS);
-
-      //scheduler.scheduleAtFixedRate(this::moveUpdate, /* initialDelay */ 0,
-      //  GAME_SPEED_MS, MILLISECONDS);
       
       try {
           serverSocket = new DatagramSocket(PORT);
@@ -178,11 +170,10 @@ public class SnakeAppServer {
               byte[] buf = new byte[BUF_SIZE];
               DatagramPacket pkt = new DatagramPacket(buf, BUF_SIZE);
               serverSocket.receive(pkt);
-              InetAddress addr = pkt.getAddress();
+              InetAddress ip = pkt.getAddress();
               int port = pkt.getPort();
-              //System.out.println("port is: " + String.valueOf(port));
-              if (portList.size() <= 2) {
-                addrList.add(addr);     
+              if (ipList.size() <= 2 && portList.size() <= 2) {
+                ipList.add(ip);     
                 portList.add(port);
               }
               byte[] data = pkt.getData(); 
@@ -197,8 +188,8 @@ public class SnakeAppServer {
                   case JOIN_GAME:
                       snake_oppo_params = this.snake_oppo_params.decodeBytes(data);
                       System.out.println(snake_oppo_params.toString());
-                      if (!isValid()) {
-                        addrList.remove(1);     
+                      if (!isValidParams()) {
+                        ipList.remove(1);     
                         portList.remove(1);
                         break;
                       }
