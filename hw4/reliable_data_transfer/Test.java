@@ -2,9 +2,10 @@ import java.util.*;
 
 
 class Test {
+  private boolean start = false;
 	public Test() {}
   	// this is a helper function, print byte array
-  	public static String print(byte[] bytes) {
+  	public String print(byte[] bytes) {
     	StringBuilder sb = new StringBuilder();
     	sb.append("[ ");
     	for (byte b : bytes) {
@@ -15,13 +16,13 @@ class Test {
 
 
     // covert an int to byte array, using two bytes to store the value
-    public static byte[] intToByteArrays(int value) {
+    public byte[] intToByteArrays(int value) {
     		return new byte[] {
         		(byte)(value >> 8),
         		(byte)value };
     }
 
-    public static int invertBits(int num) {
+    public int invertBits(int num) {
         // calculating number of
         // bits in the number
         int x = (int)(Math.log(num) /
@@ -34,13 +35,31 @@ class Test {
         return num;      
     }
 
-  public static int byteArrayToInt(byte[] bytes) {
+  public int byteArrayToInt(byte[] bytes) {
       return ((bytes[0] & 0xFF) << 8) |
               ((bytes[1] & 0xFF) << 0);
   }
 
+  public void repeat(int i) {
+    if (!this.start) {
+      Thread back =  new Thread(() -> {
+        while(true) {
+          System.out.println("thread");
+        }
+      });
+      back.setDaemon(true);
+      back.start();
+      this.start = true;
+    }
+    System.out.println("output: " + String.valueOf(i));
+  }
+
 	public static void main(String[] args) {
-    int x = 66782;
+    Test test = new Test();
+    for (int i=0; i<10; i++) {
+      test.repeat(i);
+    }
+    /**int x = 66782;
     if (x > 65535) {
       x++;
       //System.out.println(String.valueOf(invertBits(temp)));;

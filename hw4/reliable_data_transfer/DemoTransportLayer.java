@@ -22,15 +22,18 @@ public class DemoTransportLayer extends TransportLayer {
   private Semaphore sem;
   private ScheduledFuture<?> timer;
   private ScheduledExecutorService scheduler;
+  private DemoTimer demoTimer;
   private int sequence_num_send = 0;
   private int sequence_num_wait = 0;
-  private byte[] prev_ack = null;
+  private byte[] prev_ack;
   private int count = 0;
 
-  public DemoTransportLayer(NetworkLayer networkLayer) {
+  public DemoTransportLayer(NetworkLayer networkLayer) throws IOException {
     super(networkLayer);
     sem = new Semaphore(1);  // Guard to send 1 pkt at a time.
     scheduler = Executors.newScheduledThreadPool(1);
+    prev_ack = initAck(); // init Ack with sequence num -1.
+    demoTimer = new DemoTimer();
   }
 
   // this is a helper function, print byte array
@@ -62,7 +65,7 @@ public class DemoTransportLayer extends TransportLayer {
     byte[] seq = intToByteArrays(this.sequence_num_send);
     byte[] checksum = intToByteArrays(calChecksum(MSG_TYPE_DATA,
                           this.sequence_num_send, data));
-    System.out.println("send checksum:" + byteArrayToInt(checksum));
+    //System.out.println("send checksum:" + byteArrayToInt(checksum));
     outputStream.write(type);
     outputStream.write(seq);
     outputStream.write(checksum);
@@ -84,13 +87,25 @@ public class DemoTransportLayer extends TransportLayer {
       return num;      
   }
 
+  private byte[] initAck() throws IOException {
+    ByteArrayOutputStream outputStream = new ByteArrayOutputStream( );
+    byte[] type = intToByteArrays(MSG_TYPE_ACK);
+    byte[] seq = intToByteArrays(-1);
+    byte[] checksum = intToByteArrays(calAckChecksum(MSG_TYPE_ACK,
+                          -1));
+    outputStream.write(type);
+    outputStream.write(seq);
+    outputStream.write(checksum);
+    return outputStream.toByteArray();
+  }
+
   private int calChecksum(int type, int seq, byte[] data) {
     int checksum = type + seq;
     int MAX_16_BITS = 65535;
     for(int b:data){
         checksum += (b & 0xff);
     }
-    System.out.println("true: " +String.valueOf(checksum));
+    //System.out.println("true: " +String.valueOf(checksum));
     if (checksum > MAX_16_BITS) {
       checksum++;
       return invertBits(checksum);
@@ -103,15 +118,16 @@ public class DemoTransportLayer extends TransportLayer {
     try {
       sem.acquire();
       // message format
-      //log(new String(data));
-      log("No." + this.count + ", MSG of length " + data.length);
+      log(new String(data));
+      //log("No." + this.count + ", MSG of length " + data.length);
       byte[] pkt = generatePkt(data);
       byte[] copy = Arrays.copyOf(pkt, pkt.length);
       networkLayer.send(pkt);
-      timer = scheduler.scheduleAtFixedRate(new RetransmissionTask(copy),
+      demoTimer.start(copy);
+      /**timer = scheduler.scheduleAtFixedRate(new RetransmissionTask(copy),
                                             TIMEOUT_MSEC,
                                             TIMEOUT_MSEC,
-                                            TimeUnit.MILLISECONDS);
+                                            TimeUnit.MILLISECONDS);*/
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
@@ -125,14 +141,15 @@ public class DemoTransportLayer extends TransportLayer {
             int ack = byteArrayToInt(Arrays.copyOfRange(ack_data, 2, 4));
             int checksum = byteArrayToInt(Arrays.copyOfRange(ack_data, 4, 6));
             int re_checksum = calAckChecksum(type, ack);
-            System.out.println(String.format("checksum: %d, re_checksum: %d", checksum,
-              re_checksum));
-            if (ack == this.sequence_num_send) {
+            //System.out.println(String.format("checksum: %d, re_checksum: %d", checksum,
+            //  re_checksum));
+            if (checksum == re_checksum && ack == this.sequence_num_send) {
               //checksum == re_checksum &&
               this.sequence_num_send = (ack == 0) ? 1 : 0;
-              System.out.println("send close");
-              System.out.println(String.format("next send_seq: %d", this.sequence_num_send));
-              timer.cancel(true);
+              //System.out.println("send close");
+              //System.out.println(String.format("next send_seq: %d", this.sequence_num_send));
+              demoTimer.stop();
+              //timer.cancel(true);
               sem.release();
               break;
             } else {
@@ -193,16 +210,18 @@ public class DemoTransportLayer extends TransportLayer {
       //System.out.println(String.format("recv: %d %d %d", type, seq, checksum));
       byte[] message = Arrays.copyOfRange(data, 6, data.length);
       //System.out.println("recv:" + print(message));
-      //log(new String(message));
-      log("No." + this.count + ", MSG of length " + message.length);
+      log(new String(message));
+      //log("No." + this.count + ", MSG of length " + message.length);
       int re_checksum = calChecksum(type, seq, message);
       if (checksum == re_checksum) {
         // generate new ack
         this.prev_ack = generateAck();
         // update next wait seq num 0->1 or 1->0
         this.sequence_num_wait = (seq == 0) ? 1 : 0;
-        System.out.println(String.format("next wait_seq: %d", this.sequence_num_wait));
+        //System.out.println(String.format("next wait_seq: %d", this.sequence_num_wait));
         msg = message;
+        byte[] copy = Arrays.copyOf(this.prev_ack, this.prev_ack.length);
+        networkLayer.send(copy);
         break;
       } else {
         System.out.println("data corrupt" + ", checksum: " + String.valueOf(checksum) +
@@ -225,6 +244,34 @@ public class DemoTransportLayer extends TransportLayer {
     super.close();
   }
 
+  private class DemoTimer {
+    private ScheduledFuture<?> timer;
+    private ScheduledExecutorService scheduler;
+
+    public DemoTimer() {
+      scheduler = Executors.newScheduledThreadPool(1);
+    } // Constructor
+
+    // Starts the timer
+    public void start(byte[] data) {
+      timer = scheduler.scheduleAtFixedRate(new RetransmissionTask(data),
+                                                TIMEOUT_MSEC,
+                                                TIMEOUT_MSEC,
+                                                TimeUnit.MILLISECONDS);
+    } // start
+
+    // Stops the timer
+    public void stop() {
+      timer.cancel(true);
+    } // stop
+
+    // Restarts the timer
+    public void restart(byte[] data) {
+      stop();
+      start(data);
+    } // restart
+  }
+
   private class RetransmissionTask implements Runnable {
     private byte[] data;
 
@@ -236,7 +283,7 @@ public class DemoTransportLayer extends TransportLayer {
     public void run() {
       try {
         byte[] copy = Arrays.copyOf(data, data.length);
-        System.out.println("retransmited data: " + print(copy));
+        //System.out.println("retransmited data: " + print(copy));
         networkLayer.send(copy);
       } catch (Exception e) {
         e.printStackTrace();

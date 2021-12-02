@@ -46,11 +46,8 @@ public class NetworkLayer implements Closeable {
       return;
     }
     if (ThreadLocalRandom.current().nextDouble() < BIT_ERROR_PROB) {
-      //System.out.println("before biterror: " + print(data));
       randomBitError(data);
-      //System.out.println("after biterror: " + print(data));
     }
-    //System.out.println("data: " + print(data));
     DatagramPacket pkt = new DatagramPacket(data, data.length, addr, remotePort);
     clientSocket.send(pkt);
   }
@@ -60,6 +57,11 @@ public class NetworkLayer implements Closeable {
     DatagramPacket pkt = new DatagramPacket(buf, MAX_SEGMENT_SIZE);
     serverSocket.receive(pkt);
     return Arrays.copyOf(pkt.getData(), pkt.getLength());
+  }
+
+
+  public boolean isClosed() {
+    return clientSocket.isClosed();
   }
 
   @Override
