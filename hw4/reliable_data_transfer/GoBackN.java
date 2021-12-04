@@ -268,17 +268,10 @@ public class GoBackN extends TransportLayer {
     return outputStream.toByteArray();
   }
 
-  private int cal_waiting_time() {
-    int MIN_WAIT = 4; // at least wait 4 seconds
-    return 1000*(MIN_WAIT + (int) (BIT_ERROR_PROB + MSG_LOST_PROB)*10);
-  }
-
   @Override
   public void close() throws IOException {
     try {
-      sem.acquire();
-      // in case GBN protocol close socket before ACK
-      Thread.sleep(cal_waiting_time());
+      sem.acquire(WINDOW_SIZE);
     } catch (InterruptedException e) {
       e.printStackTrace();
     }
