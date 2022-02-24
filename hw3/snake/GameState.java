@@ -122,8 +122,8 @@ class GameState {
       return;
     }
     Position nextHead = Position.copy(this.snake.getFirst()).move(this.dir);
-    if (isInSnakeBody(nextHead) || isInSnakeOpponentBody(nextHead) ||
-          isCollideWindow(nextHead)) {
+    if (isInSnakeBody(nextHead) || isInSnakeOpponentBody(nextHead)) {
+      //    isCollideWindow(nextHead)) {
       this.gameOver = true;
       snake_win = false;
       return;
@@ -151,8 +151,8 @@ class GameState {
       return;
     }
     Position nextHead = Position.copy(snake_opponent.getFirst()).move(opponent_dir);
-    if (isInSnakeOpponentBody(nextHead) || isInSnakeBody(nextHead) ||
-          isCollideWindow(nextHead)) {
+    if (isInSnakeOpponentBody(nextHead) || isInSnakeBody(nextHead)) {
+        //  isCollideWindow(nextHead)) {
       this.gameOver = true;
       snake_opponent_win = false;
       return;
